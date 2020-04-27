@@ -1,0 +1,11 @@
+{
+    "name": "fazvil/php-project-lvl2",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Vildan Fazlyev",
+            "email": "fazvil@mail.ru"
+        }
+    ],
+    "require": {}
+}
