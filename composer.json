@@ -7,5 +7,10 @@
             "email": "fazvil@mail.ru"
         }
     ],
-    "require": {}
+    "bin": [
+        "bin/gendiff"
+    ],
+    "require": {
+        "docopt/docopt": "^1.0"
+    }
 }
