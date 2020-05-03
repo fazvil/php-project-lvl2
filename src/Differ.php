@@ -50,7 +50,7 @@ function genDiff($pathToFile1, $pathToFile2)
         } else {
             $acc[] = "  + {$n}: {$value2}";
         }
-        return $acc;        
+        return $acc;
     }, []);
     array_unshift($result, '{');
     $result[] = '}';
