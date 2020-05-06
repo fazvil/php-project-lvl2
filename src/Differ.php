@@ -54,5 +54,5 @@ function genDiff($pathToFile1, $pathToFile2)
     }, []);
     array_unshift($result, '{');
     $result[] = '}';
-    print_r(implode("\n", $result));
+    return implode("\n", $result);
 }

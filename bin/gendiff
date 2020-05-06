@@ -30,4 +30,5 @@ DOC;
 
 $args = Docopt::handle($doc);
 
-f($args);
+$genDiff = f($args);
+print_r($genDiff);
