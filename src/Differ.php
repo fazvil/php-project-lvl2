@@ -4,16 +4,24 @@ namespace Differ\Differ;
 
 use Funct;
 
-function readFileToArray($file)
-{
-    return json_decode(file_get_contents($file), true);
-}
-
 function f($args)
 {
     if ($args['<firstFile>']) {
         return genDiff($args['<firstFile>'], $args['<secondFile>']);
     }
+}
+
+function readFile($pathToFile)
+{
+    if (!is_readable($pathToFile)) {
+        throw new \Exception("'{$pathToFile}' is not readble\n");
+    }
+    return file_get_contents($pathToFile);
+}
+
+function jsonToArray($readFile)
+{
+    return json_decode($readFile, true);
 }
 
 function getValue($array, $key)
@@ -30,29 +38,35 @@ function getValue($array, $key)
 
 function genDiff($pathToFile1, $pathToFile2)
 {
-    $jsonToArray1 = readFileToArray($pathToFile1);
-    $jsonToArray2 = readFileToArray($pathToFile2);
+    try {
+        $readFile1 = readFile($pathToFile1);
+        $readFile2 = readFile($pathToFile2);
+    } catch (\Exception $e) {
+        return $e->getMessage();
+    }
+    $jsonToArray1 = jsonToArray($readFile1);
+    $jsonToArray2 = jsonToArray($readFile2);
     $keys = Funct\Collection\union(array_keys($jsonToArray1), array_keys($jsonToArray2));
-    $result = array_reduce($keys, function ($acc, $n) use ($jsonToArray1, $jsonToArray2) {
-        $value1 = getValue($jsonToArray1, $n);
-        $value2 = getValue($jsonToArray2, $n);
+    $result = array_reduce($keys, function ($acc, $key) use ($jsonToArray1, $jsonToArray2) {
+        $value1 = getValue($jsonToArray1, $key);
+        $value2 = getValue($jsonToArray2, $key);
         if ($value1) {
             if ($value2) {
                 if ($value1 === $value2) {
-                    $acc[] = "    {$n}: {$value1}";
+                    $acc[] = "    {$key}: {$value1}";
                 } else {
-                    $acc[] = "  - {$n}: {$value1}";
-                    $acc[] = "  + {$n}: {$value2}";
+                    $acc[] = "  - {$key}: {$value1}";
+                    $acc[] = "  + {$key}: {$value2}";
                 }
             } else {
-                $acc[] = "  - {$n}: {$value1}";
+                $acc[] = "  - {$key}: {$value1}";
             }
         } else {
-            $acc[] = "  + {$n}: {$value2}";
+            $acc[] = "  + {$key}: {$value2}";
         }
         return $acc;
     }, []);
-    array_unshift($result, '{');
-    $result[] = '}';
+    array_unshift($result, "{");
+    $result[] = "}\n";
     return implode("\n", $result);
 }
