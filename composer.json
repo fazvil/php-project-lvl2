@@ -16,7 +16,9 @@
         ]
     },
     "scripts": {
-        "phpcs": "vendor/bin/phpcs"
+        "phpcs": "vendor/bin/phpcs",
+        "phpunit": "phpunit",
+        "test": "phpunit tests"
     },
     "require": {
         "docopt/docopt": "^1.0",
