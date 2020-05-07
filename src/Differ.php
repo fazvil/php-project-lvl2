@@ -4,10 +4,10 @@ namespace Differ\Differ;
 
 use Funct;
 
-function f($args)
+function f($arg)
 {
-    if ($args['<firstFile>']) {
-        return genDiff($args['<firstFile>'], $args['<secondFile>']);
+    if ($arg['<firstFile>']) {
+        return genDiff($arg['<firstFile>'], $arg['<secondFile>']);
     }
 }
 
