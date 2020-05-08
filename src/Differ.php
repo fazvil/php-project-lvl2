@@ -3,6 +3,7 @@
 namespace Differ\Differ;
 
 use Funct;
+use Symfony\Component\Yaml\Yaml;
 
 function f($args)
 {
@@ -11,17 +12,12 @@ function f($args)
     }
 }
 
-function readFile($pathToFile)
+function readFile($file)
 {
-    if (!is_readable($pathToFile)) {
-        throw new \Exception("'{$pathToFile}' is not readble\n");
+    if (!is_readable($file)) {
+        throw new \Exception("'{$file}' is not readble\n");
     }
-    return file_get_contents($pathToFile);
-}
-
-function jsonToArray($readFile)
-{
-    return json_decode($readFile, true);
+    return file_get_contents($file);
 }
 
 function getValue($array, $key)
@@ -36,20 +32,33 @@ function getValue($array, $key)
     return $value;
 }
 
+function parsers($text, $extension)
+{
+    if ($extension === 'json') {
+        $parsed = json_decode($text, true);
+    } elseif ($extension === 'yaml') {
+        $parsed = Yaml::parse($text);
+    }
+    return $parsed;
+}
+
 function genDiff($pathToFile1, $pathToFile2)
 {
     try {
-        $readFile1 = readFile($pathToFile1);
-        $readFile2 = readFile($pathToFile2);
+        $textFromFile1 = readFile($pathToFile1);
+        $textFromFile2 = readFile($pathToFile2);
     } catch (\Exception $e) {
         return $e->getMessage();
     }
-    $jsonToArray1 = jsonToArray($readFile1);
-    $jsonToArray2 = jsonToArray($readFile2);
-    $keys = Funct\Collection\union(array_keys($jsonToArray1), array_keys($jsonToArray2));
-    $result = array_reduce($keys, function ($acc, $key) use ($jsonToArray1, $jsonToArray2) {
-        $value1 = getValue($jsonToArray1, $key);
-        $value2 = getValue($jsonToArray2, $key);
+    $extension = pathinfo($pathToFile1)['extension'];
+
+    $parsed1 = parsers($textFromFile1, $extension);
+    $parsed2 = parsers($textFromFile2, $extension);
+
+    $keys = Funct\Collection\union(array_keys($parsed1), array_keys($parsed2));
+    $result = array_reduce($keys, function ($acc, $key) use ($parsed1, $parsed2) {
+        $value1 = getValue($parsed1, $key);
+        $value2 = getValue($parsed2, $key);
         if ($value1) {
             if ($value2) {
                 if ($value1 === $value2) {
