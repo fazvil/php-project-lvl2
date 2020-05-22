@@ -8,29 +8,17 @@ use SebastianBergmann\Diff\Differ as DiffDiffer;
 
 class DifferTest extends TestCase
 {
-    public function testGenDiff()
+    public function testGenDiffFlat()
     {
-        $expected = implode("\n", [
-            "{",
-            "    host: hexlet.io",
-            "  - timeout: 50",
-            "  + timeout: 20",
-            "  - proxy: 123.234.53.22",
-            "  + verbose: true",
-            "}\n"
-        ]);
+        $expected = file_get_contents('tests/fixtures/expectedFlatView');
         $actual = Differ\genDiff('tests/fixtures/before.json', 'tests/fixtures/after.json');
         $this->assertEquals($expected, $actual);
     }
 
-    public function testGetValue()
+    public function testGenDiffTree()
     {
-        $workArray = [
-            'timeout' => 20,
-            'verbose' => true,
-            'host' => 'hexlet.io'];
-        $this->assertFalse(Differ\getValue($workArray, 'proxy'));
-        $this->assertEquals(20, Differ\getValue($workArray, 'timeout'));
-        $this->assertEquals('true', Differ\getValue($workArray, 'verbose'));
+        $expected = file_get_contents('tests/fixtures/expectedTreeView');
+        $actual = Differ\genDiff('tests/fixtures/beforeTree.json', 'tests/fixtures/afterTree.json');
+        $this->assertEquals($expected, $actual);
     }
 }

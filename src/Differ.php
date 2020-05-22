@@ -118,6 +118,5 @@ function genDiff($pathToFile1, $pathToFile2)
         $diffToString = implode("\n", $diffToArray);
         return $diffToString;
     };
-    $diff = $diff($ast);
-    print_r($diff);
+    return $diff($ast);
 }
