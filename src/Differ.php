@@ -15,17 +15,18 @@ function f($args)
 function readFile($file)
 {
     if (!is_readable($file)) {
-        throw new \Exception("'{$file}' is not readble\n");
+        throw new \Exception("'{$file}' is not readble\node");
     }
     return file_get_contents($file);
 }
 
-function changeValue($value)
+function changeValue($value, $currentDepth)
 {
+    $spaces = str_repeat(' ', $currentDepth * 4);
     if (is_object($value)) {
         $vars = get_object_vars($value);
-        foreach ($vars as $key => $val) {
-            return "{\n            {$key}: {$val}\n        }";
+        foreach ($vars as $k => $v) {
+            return "{\n{$spaces}    {$k}: {$v}\n{$spaces}}";
         }
     }
     if (is_bool($value)) {
@@ -52,8 +53,8 @@ function genDiff($pathToFile1, $pathToFile2)
     } catch (\Exception $e) {
         return $e->getMessage();
     }
-    $extension = pathinfo($pathToFile1)['extension'];
 
+    $extension = pathinfo($pathToFile1)['extension'];
     $parsed1 = parsers($textFromFile1, $extension);
     $parsed2 = parsers($textFromFile2, $extension);
 
@@ -84,39 +85,39 @@ function genDiff($pathToFile1, $pathToFile2)
     };
     $ast = $ast($parsed1, $parsed2);
 
-    $diff = function ($ast) use (&$diff) {
-        $iter = function ($ast, $depth) use (&$iter) {
-            $map = array_map(function ($n) use ($iter, $depth) {
-                $key = $n['key'];
-                $children = $n['children'] ?? null;
-                $spaces = str_repeat(' ', $depth * 4);
+    $diff = function ($ast) {
+        $currentDepth = 1;
+        $iter = function ($ast, $currentDepth) use (&$iter) {
+            $map = array_map(function ($node) use ($iter, $currentDepth) {
+                $key = $node['key'];
+                $children = $node['children'] ?? null;
+                $spaces = str_repeat(' ', $currentDepth * 4 - 4);
     
                 if ($children) {
-                    $iter = implode("\n", $iter($children, $depth + 1));
-                    return "    {$n['key']}: {\n{$iter}\n    }";
+                    $iter = implode("\n", $iter($children, $currentDepth + 1));
+                    return "    {$key}: {\n{$iter}\n    }";
                 }
-                $before = changeValue($n['value_before']);
-                $after = changeValue($n['value_after']);
+                $value_before = changeValue($node['value_before'], $currentDepth);
+                $value_after = changeValue($node['value_after'], $currentDepth);
     
-                if ($before === $after) {
-                    return "{$spaces}    {$key}: {$before}";
-                } elseif (!$before) {
-                    return "{$spaces}  + {$key}: {$after}";
-                } elseif (!$after) {
-                    return "{$spaces}  - {$key}: {$before}";
+                if ($value_before === $value_after) {
+                    return "{$spaces}    {$key}: {$value_before}";
+                } elseif (!$value_before) {
+                    return "{$spaces}  + {$key}: {$value_after}";
+                } elseif (!$value_after) {
+                    return "{$spaces}  - {$key}: {$value_before}";
                 } else {
-                    return "{$spaces}  - {$key}: {$before}\n{$spaces}  + {$key}: {$after}";
+                    return "{$spaces}  - {$key}: {$value_before}\n{$spaces}  + {$key}: {$value_after}";
                 }   
             }, $ast);
             return $map;
         };
-        return $iter($ast, 0);
+        $diffToArray = $iter($ast, $currentDepth);
+        array_unshift($diffToArray, '{');
+        $diffToArray[] = '}';
+        $diffToString = implode("\n", $diffToArray);
+        return $diffToString;
     };
-
     $diff = $diff($ast);
-    array_unshift($diff, '{');
-    $diff[] = '}';
-    $diffToString = implode("\n", $diff);
-
-    print_r($diffToString);
+    print_r($diff);
 }
