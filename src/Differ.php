@@ -108,7 +108,7 @@ function genDiff($pathToFile1, $pathToFile2)
                     return "{$spaces}  - {$key}: {$value_before}";
                 } else {
                     return "{$spaces}  - {$key}: {$value_before}\n{$spaces}  + {$key}: {$value_after}";
-                }   
+                }
             }, $ast);
             return $map;
         };
