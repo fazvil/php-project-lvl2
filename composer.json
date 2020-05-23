@@ -12,7 +12,8 @@
     ],
     "autoload": {
         "files": [
-            "src/Differ.php"
+            "src/Differ.php",
+            "src/Formatters/Pretty.php"
         ]
     },
     "scripts": {

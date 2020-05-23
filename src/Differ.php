@@ -4,35 +4,22 @@ namespace Differ\Differ;
 
 use Funct;
 use Symfony\Component\Yaml\Yaml;
+use Differ\Formatters\Pretty;
+use Differ\Formatters\Plain;
 
 function f($args)
 {
     if ($args['<firstFile>']) {
-        return genDiff($args['<firstFile>'], $args['<secondFile>']);
+        return genDiff($args['<firstFile>'], $args['<secondFile>'], $args['--format']);
     }
 }
 
 function readFile($file)
 {
     if (!is_readable($file)) {
-        throw new \Exception("'{$file}' is not readble\node");
+        throw new \Exception("'{$file}' is not readble\n");
     }
     return file_get_contents($file);
-}
-
-function changeValue($value, $currentDepth)
-{
-    $spaces = str_repeat(' ', $currentDepth * 4);
-    if (is_object($value)) {
-        $vars = get_object_vars($value);
-        foreach ($vars as $k => $v) {
-            return "{\n{$spaces}    {$k}: {$v}\n{$spaces}}";
-        }
-    }
-    if (is_bool($value)) {
-        return $value ? 'true' : 'false';
-    }
-    return $value;
 }
 
 function parsers($text, $extension)
@@ -45,7 +32,7 @@ function parsers($text, $extension)
     return $parsed;
 }
 
-function genDiff($pathToFile1, $pathToFile2)
+function genDiff($pathToFile1, $pathToFile2, $format)
 {
     try {
         $textFromFile1 = readFile($pathToFile1);
@@ -75,8 +62,19 @@ function genDiff($pathToFile1, $pathToFile2)
                     'children' => $ast($valueFromArray1, $valueFromArray2)
                 ];
             }
+
+            if ($valueFromArray1 === $valueFromArray2) {
+                $status = 'unchanged';
+            } elseif (!$valueFromArray2) {
+                $status = 'removed';
+            } elseif (!$valueFromArray1) {
+                $status = 'added';
+            } else {
+                $status = 'changed';
+            }
             return [
                 'key' => $key,
+                'status' => $status,
                 'value_before' => $valueFromArray1,
                 'value_after' => $valueFromArray2
             ];
@@ -85,38 +83,9 @@ function genDiff($pathToFile1, $pathToFile2)
     };
     $ast = $ast($parsed1, $parsed2);
 
-    $diff = function ($ast) {
-        $currentDepth = 1;
-        $iter = function ($ast, $currentDepth) use (&$iter) {
-            $map = array_map(function ($node) use ($iter, $currentDepth) {
-                $key = $node['key'];
-                $children = $node['children'] ?? null;
-                $spaces = str_repeat(' ', $currentDepth * 4 - 4);
-    
-                if ($children) {
-                    $iter = implode("\n", $iter($children, $currentDepth + 1));
-                    return "    {$key}: {\n{$iter}\n    }";
-                }
-                $value_before = changeValue($node['value_before'], $currentDepth);
-                $value_after = changeValue($node['value_after'], $currentDepth);
-    
-                if ($value_before === $value_after) {
-                    return "{$spaces}    {$key}: {$value_before}";
-                } elseif (!$value_before) {
-                    return "{$spaces}  + {$key}: {$value_after}";
-                } elseif (!$value_after) {
-                    return "{$spaces}  - {$key}: {$value_before}";
-                } else {
-                    return "{$spaces}  - {$key}: {$value_before}\n{$spaces}  + {$key}: {$value_after}";
-                }
-            }, $ast);
-            return $map;
-        };
-        $diffToArray = $iter($ast, $currentDepth);
-        array_unshift($diffToArray, '{');
-        $diffToArray[] = '}';
-        $diffToString = implode("\n", $diffToArray);
-        return $diffToString;
-    };
-    return $diff($ast);
+    if ($format === 'pretty') {
+        return Pretty\diff($ast);
+    } elseif ($format === 'plain') {
+        return Plain\diff($ast);
+    }
 }
