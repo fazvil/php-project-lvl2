@@ -8,17 +8,18 @@ use SebastianBergmann\Diff\Differ as DiffDiffer;
 
 class DifferTest extends TestCase
 {
-    public function testGenDiffFlat()
+    public function testGenDiff()
     {
-        $expected = file_get_contents('tests/fixtures/expectedFlatView');
-        $actual = Differ\genDiff('tests/fixtures/before.json', 'tests/fixtures/after.json');
+        $expected = file_get_contents('tests/fixtures/expectedFlatPretty');
+        $actual = Differ\genDiff('tests/fixtures/before.yaml', 'tests/fixtures/after.yaml', 'pretty');
         $this->assertEquals($expected, $actual);
-    }
 
-    public function testGenDiffTree()
-    {
-        $expected = file_get_contents('tests/fixtures/expectedTreeView');
-        $actual = Differ\genDiff('tests/fixtures/beforeTree.json', 'tests/fixtures/afterTree.json');
+        $expected = file_get_contents('tests/fixtures/expectedPretty');
+        $actual = Differ\genDiff('tests/fixtures/before.json', 'tests/fixtures/after.json', 'pretty');
+        $this->assertEquals($expected, $actual);
+
+        $expected = file_get_contents('tests/fixtures/expectedPlain');
+        $actual = Differ\genDiff('tests/fixtures/before.json', 'tests/fixtures/after.json', 'plain');
         $this->assertEquals($expected, $actual);
     }
 }

@@ -9,7 +9,7 @@ use Differ\Formatters\Plain;
 
 function f($args)
 {
-    if ($args['<firstFile>']) {
+    if ($args['<firstFile>'] && $args['<secondFile>']) {
         return genDiff($args['<firstFile>'], $args['<secondFile>'], $args['--format']);
     }
 }
@@ -56,27 +56,25 @@ function genDiff($pathToFile1, $pathToFile2, $format)
         $map = array_map(function ($key) use ($arrayForObject1, $arrayForObject2, $ast) {
             $valueFromArray1 = $arrayForObject1[$key] ?? null;
             $valueFromArray2 = $arrayForObject2[$key] ?? null;
-            if (is_object($valueFromArray1) && is_object($valueFromArray2)) {
-                return [
-                    'key' => $key,
-                    'children' => $ast($valueFromArray1, $valueFromArray2)
-                ];
-            }
 
-            if ($valueFromArray1 === $valueFromArray2) {
-                $status = 'unchanged';
+            if (is_object($valueFromArray1) && is_object($valueFromArray2)) {
+                $type = 'nested';
+                $children = $ast($valueFromArray1, $valueFromArray2);
+            } elseif ($valueFromArray1 === $valueFromArray2) {
+                $type = 'unchanged';
             } elseif (!$valueFromArray2) {
-                $status = 'removed';
+                $type = 'removed';
             } elseif (!$valueFromArray1) {
-                $status = 'added';
+                $type = 'added';
             } else {
-                $status = 'changed';
+                $type = 'changed';
             }
             return [
+                'type' => $type,
                 'key' => $key,
-                'status' => $status,
-                'value_before' => $valueFromArray1,
-                'value_after' => $valueFromArray2
+                'beforeValue' => $valueFromArray1,
+                'afterValue' => $valueFromArray2,
+                'children' => ($type === 'nested') ? $children : []
             ];
         }, $jointKeysForTwoArrays);
         return $map;

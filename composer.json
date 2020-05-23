@@ -13,7 +13,8 @@
     "autoload": {
         "files": [
             "src/Differ.php",
-            "src/Formatters/Pretty.php"
+            "src/Formatters/Pretty.php",
+            "src/Formatters/Plain.php"
         ]
     },
     "scripts": {
