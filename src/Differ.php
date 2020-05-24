@@ -2,10 +2,12 @@
 
 namespace Differ\Differ;
 
-use Funct;
 use Symfony\Component\Yaml\Yaml;
 use Differ\Formatters\Pretty;
 use Differ\Formatters\Plain;
+use Differ\Formatters\Json;
+
+use function Funct\Collection\union;
 
 function f($args)
 {
@@ -46,38 +48,39 @@ function genDiff($pathToFile1, $pathToFile2, $format)
     $parsed2 = parsers($textFromFile2, $extension);
 
     $ast = function ($object1, $object2) use (&$ast) {
-        $arrayForObject1 = get_object_vars($object1);
-        $arrayForObject2 = get_object_vars($object2);
+        $vars1 = get_object_vars($object1);
+        $vars2 = get_object_vars($object2);
 
-        $keys1 = array_keys($arrayForObject1);
-        $keys2 = array_keys($arrayForObject2);
-        $jointKeysForTwoArrays = array_values(Funct\Collection\union($keys1, $keys2));
+        $keys1 = array_keys($vars1);
+        $keys2 = array_keys($vars2);
+        $jointKeys = array_values(union($keys1, $keys2));
 
-        $map = array_map(function ($key) use ($arrayForObject1, $arrayForObject2, $ast) {
-            $valueFromArray1 = $arrayForObject1[$key] ?? null;
-            $valueFromArray2 = $arrayForObject2[$key] ?? null;
+        $iter = array_map(function ($key) use ($vars1, $vars2, $ast) {
+            $beforeValue = $vars1[$key] ?? null;
+            $afrerValue = $vars2[$key] ?? null;
 
-            if (is_object($valueFromArray1) && is_object($valueFromArray2)) {
+            if (is_object($beforeValue) && is_object($afrerValue)) {
                 $type = 'nested';
-                $children = $ast($valueFromArray1, $valueFromArray2);
-            } elseif ($valueFromArray1 === $valueFromArray2) {
-                $type = 'unchanged';
-            } elseif (!$valueFromArray2) {
-                $type = 'removed';
-            } elseif (!$valueFromArray1) {
-                $type = 'added';
+                $children = $ast($beforeValue, $afrerValue);
+            } elseif ($beforeValue) {
+                if ($afrerValue) {
+                    $type = ($beforeValue === $afrerValue) ? 'unchanged' : 'changed';
+                } else {
+                    $type = 'removed';
+                }
             } else {
-                $type = 'changed';
+                $type = 'added';
             }
+
             return [
                 'type' => $type,
                 'key' => $key,
-                'beforeValue' => $valueFromArray1,
-                'afterValue' => $valueFromArray2,
+                'beforeValue' => $beforeValue,
+                'afterValue' => $afrerValue,
                 'children' => ($type === 'nested') ? $children : []
             ];
-        }, $jointKeysForTwoArrays);
-        return $map;
+        }, $jointKeys);
+        return $iter;
     };
     $ast = $ast($parsed1, $parsed2);
 
@@ -85,5 +88,7 @@ function genDiff($pathToFile1, $pathToFile2, $format)
         return Pretty\diff($ast);
     } elseif ($format === 'plain') {
         return Plain\diff($ast);
+    } elseif ($format === 'json') {
+        return Json\diff($ast);
     }
 }

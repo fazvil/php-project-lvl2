@@ -21,5 +21,9 @@ class DifferTest extends TestCase
         $expected = file_get_contents('tests/fixtures/expectedPlain');
         $actual = Differ\genDiff('tests/fixtures/before.json', 'tests/fixtures/after.json', 'plain');
         $this->assertEquals($expected, $actual);
+
+        $expected = file_get_contents('tests/fixtures/expectedJson');
+        $actual = Differ\genDiff('tests/fixtures/before.json', 'tests/fixtures/after.json', 'json');
+        $this->assertEquals($expected, $actual);
     }
 }

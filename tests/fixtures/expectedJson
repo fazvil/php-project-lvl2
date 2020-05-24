@@ -1,0 +1,25 @@
+{
+    "common": {
+        "setting1": ["unchanged", "Value 1"],
+        "setting2": ["removed", "200"],
+        "setting3": ["unchanged", true],
+        "setting6": ["removed", {
+            "key": "value"
+        }],
+        "setting4": ["added", "blah blah"],
+        "setting5": ["added", {
+            "key5": "value5"
+        }]
+    },
+    "group1": {
+        "baz": ["removed", "bas"],
+        "baz": ["added", "bars"],
+        "foo": ["unchanged", "bar"]
+    },
+    "group2": ["removed", {
+        "abc": "12345"
+    }],
+    "group3": ["added", {
+        "fee": "100500"
+    }]
+}
