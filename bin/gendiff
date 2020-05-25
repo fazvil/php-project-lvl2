@@ -2,7 +2,7 @@
 
 <?php
 
-use function Differ\Differ\f;
+use function Differ\Differ\run;
 
 $autoloadPath1 = __DIR__ . '/../../../autoload.php';
 $autoloadPath2 = __DIR__ . '/../vendor/autoload.php';
@@ -30,5 +30,5 @@ DOC;
 
 $args = Docopt::handle($doc);
 
-$genDiff = f($args);
+$genDiff = run($args);
 print_r($genDiff);

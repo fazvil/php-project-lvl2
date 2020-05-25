@@ -9,17 +9,19 @@ use Differ\Formatters\Json;
 
 use function Funct\Collection\union;
 
-function f($args)
+function run($args)
 {
     if ($args['<firstFile>'] && $args['<secondFile>']) {
         return genDiff($args['<firstFile>'], $args['<secondFile>'], $args['--format']);
+    } else {
+        return "command not found\n\n";
     }
 }
 
 function readFile($file)
 {
     if (!is_readable($file)) {
-        throw new \Exception("'{$file}' is not readble\n");
+        throw new \Exception("'{$file}' is not readble\n\n");
     }
     return file_get_contents($file);
 }
@@ -34,18 +36,18 @@ function parsers($text, $extension)
     return $parsed;
 }
 
-function genDiff($pathToFile1, $pathToFile2, $format)
+function genDiff($pathToFile1, $pathToFile2, $format = 'pretty')
 {
     try {
-        $textFromFile1 = readFile($pathToFile1);
-        $textFromFile2 = readFile($pathToFile2);
+        $readedFile1 = readFile($pathToFile1);
+        $readedFile2 = readFile($pathToFile2);
     } catch (\Exception $e) {
         return $e->getMessage();
     }
 
     $extension = pathinfo($pathToFile1)['extension'];
-    $parsed1 = parsers($textFromFile1, $extension);
-    $parsed2 = parsers($textFromFile2, $extension);
+    $parsed1 = parsers($readedFile1, $extension);
+    $parsed2 = parsers($readedFile2, $extension);
 
     $ast = function ($object1, $object2) use (&$ast) {
         $vars1 = get_object_vars($object1);

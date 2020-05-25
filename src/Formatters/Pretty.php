@@ -2,22 +2,23 @@
 
 namespace Differ\Formatters\Pretty;
 
-function getValues($node, $currentDepth)
+function formatValue($value, $currentDepth)
 {
     $spaces = str_repeat(' ', $currentDepth * 4);
-    $changeValue = function ($value) use ($spaces) {
-        if (is_object($value)) {
-            $vars = get_object_vars($value);
-            foreach ($vars as $k => $v) {
-                return "{\n{$spaces}    {$k}: {$v}\n{$spaces}}";
-            }
-        }
-        if (is_bool($value)) {
-            return $value ? 'true' : 'false';
-        }
-        return $value;
-    };
-    return [$changeValue($node['beforeValue']), $changeValue($node['afterValue'])];
+    if (is_object($value)) {
+        $vars = get_object_vars($value);
+        $keys = array_keys($vars);
+        $values = array_values($vars);
+        $format = array_map(function ($key, $value) use ($spaces) {
+            return "{$spaces}    {$key}: {$value}";
+        }, $keys, $values);
+        $toString = implode("\n", $format);
+        return "{\n{$toString}\n{$spaces}}";
+    }
+    if (is_bool($value)) {
+        return $value ? 'true' : 'false';
+    }
+    return $value;
 }
 
 function diff($ast)
@@ -27,13 +28,17 @@ function diff($ast)
         $map = array_map(function ($node) use ($iter, $currentDepth) {
             $key = $node['key'];
             $spaces = str_repeat(' ', $currentDepth * 4 - 4);
-            [$beforeValue, $afterValue] = getValues($node, $currentDepth);
+
+            if ($node['type'] === 'nested') {
+                $iter = $iter($node['children'], $currentDepth + 1);
+                $iterToString = implode("\n", $iter);
+                return "    {$key}: {\n{$iterToString}\n    }";
+            }
+
+            $beforeValue = formatValue($node['beforeValue'], $currentDepth);
+            $afterValue = formatValue($node['afterValue'], $currentDepth);
 
             switch ($node['type']) {
-                case 'nested':
-                    $iter = $iter($node['children'], $currentDepth + 1);
-                    $iterToString = implode("\n", $iter);
-                    return "    {$key}: {\n{$iterToString}\n    }";
                 case 'unchanged':
                     return "{$spaces}    {$key}: {$beforeValue}";
                 case 'added':
