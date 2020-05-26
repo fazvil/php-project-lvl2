@@ -6,3 +6,18 @@
 
 Установить пакет глобально  
 `~$ composer global require fazvil/php-project-lvl2:dev-master`
+
+Сравнение плоских файлов JSON
+[![asciicast](https://asciinema.org/a/pPhsAf2KvYrXFbBlsU4qUPIAb.svg)](https://asciinema.org/a/pPhsAf2KvYrXFbBlsU4qUPIAb)
+
+Сравнение плоских файлов YAML
+[![asciicast](https://asciinema.org/a/aPJBuY6s20CNYGaSMDhEZiXk2.svg)](https://asciinema.org/a/aPJBuY6s20CNYGaSMDhEZiXk2)
+
+Рекурсивное сравнение
+[![asciicast](https://asciinema.org/a/dOOdDrKbx17XJNB86EFgnIPug.svg)](https://asciinema.org/a/dOOdDrKbx17XJNB86EFgnIPug)
+
+Плоский формат
+[![asciicast](https://asciinema.org/a/Hm9p0UWMaDT53tUC30gKejwO0.svg)](https://asciinema.org/a/Hm9p0UWMaDT53tUC30gKejwO0)
+
+Вывод в JSON
+[![asciicast](https://asciinema.org/a/9BkBSBftDsjneUvpd2BLKyLSY.svg)](https://asciinema.org/a/9BkBSBftDsjneUvpd2BLKyLSY)
