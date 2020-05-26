@@ -13,9 +13,9 @@
     "autoload": {
         "files": [
             "src/Differ.php",
-            "src/Formatters/Pretty.php",
-            "src/Formatters/Plain.php",
-            "src/Formatters/Json.php"
+            "src/Formatters/formatterToPretty.php",
+            "src/Formatters/formatterToPlain.php",
+            "src/Formatters/formatterToJson.php"
         ]
     },
     "scripts": {

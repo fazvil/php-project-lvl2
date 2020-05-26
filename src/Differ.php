@@ -3,9 +3,9 @@
 namespace Differ\Differ;
 
 use Symfony\Component\Yaml\Yaml;
-use Differ\Formatters\Pretty;
-use Differ\Formatters\Plain;
-use Differ\Formatters\Json;
+use Differ\Formatters\formatterToPretty;
+use Differ\Formatters\formatterToPlain;
+use Differ\Formatters\formatterToJson;
 
 use function Funct\Collection\union;
 
@@ -87,10 +87,10 @@ function genDiff($pathToFile1, $pathToFile2, $format = 'pretty')
     $ast = $ast($parsed1, $parsed2);
 
     if ($format === 'pretty') {
-        return Pretty\diff($ast);
+        return formatterToPretty\formatter($ast);
     } elseif ($format === 'plain') {
-        return Plain\diff($ast);
+        return formatterToPlain\formatter($ast);
     } elseif ($format === 'json') {
-        return Json\diff($ast);
+        return formatterToJson\formatter($ast);
     }
 }

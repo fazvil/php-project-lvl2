@@ -1,6 +1,6 @@
 <?php
 
-namespace Differ\Formatters\Pretty;
+namespace Differ\Formatters\formatterToPretty;
 
 function formatValue($value, $currentDepth)
 {
@@ -21,7 +21,7 @@ function formatValue($value, $currentDepth)
     return $value;
 }
 
-function diff($ast)
+function formatter($ast)
 {
     $currentDepth = 1;
     $iter = function ($ast, $currentDepth) use (&$iter) {
@@ -51,7 +51,7 @@ function diff($ast)
         }, $ast);
         return $map;
     };
-    $diffToArray = $iter($ast, $currentDepth);
-    $diffToString = implode("\n", $diffToArray);
+    $diff = $iter($ast, $currentDepth);
+    $diffToString = implode("\n", $diff);
     return "{\n{$diffToString}\n}";
 }

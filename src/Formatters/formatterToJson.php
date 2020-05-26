@@ -1,16 +1,20 @@
 <?php
 
-namespace Differ\Formatters\Json;
+namespace Differ\Formatters\formatterToJson;
 
-function getValue($value, $currentDepth)
+function formatValue($value, $currentDepth)
 {
     $spaces = str_repeat(' ', $currentDepth * 4);
     if (is_object($value)) {
         $vars = get_object_vars($value);
-        foreach ($vars as $k => $v) {
-            $v = getValue($v, $currentDepth);
-            return "{\n{$spaces}    \"{$k}\": {$v}\n{$spaces}}";
-        }
+        $keys = array_keys($vars);
+        $values = array_values($vars);
+        $iter = array_map(function ($key, $value) use ($spaces, $currentDepth) {
+            $formatedValue = formatValue($value, $currentDepth);
+            return "{$spaces}    \"{$key}\": {$formatedValue}";
+        }, $keys, $values);
+        $iterToString = implode("\n", $iter);
+        return "{\n{$iterToString}\n{$spaces}}";
     }
     if (is_bool($value)) {
         return $value ? 'true' : 'false';
@@ -21,21 +25,24 @@ function getValue($value, $currentDepth)
     return "\"{$value}\"";
 }
 
-function diff($ast)
+function formatter($ast)
 {
     $currentDepth = 1;
     $iter = function ($ast, $currentDepth) use (&$iter) {
         $map = array_map(function ($node) use ($iter, $currentDepth) {
             $spaces = str_repeat(' ', $currentDepth * 4);
             $key = $node['key'];
-            $beforeValue = getValue($node['beforeValue'], $currentDepth);
-            $afterValue = getValue($node['afterValue'], $currentDepth);
+
+            if ($node['type'] === 'nested') {
+                $iter = $iter($node['children'], $currentDepth + 1);
+                $iterToString = implode(",\n", $iter);
+                return "{$spaces}\"{$key}\": {\n{$iterToString}\n{$spaces}}";
+            }
+
+            $beforeValue = formatValue($node['beforeValue'], $currentDepth);
+            $afterValue = formatValue($node['afterValue'], $currentDepth);
 
             switch ($node['type']) {
-                case 'nested':
-                    $iter = $iter($node['children'], $currentDepth + 1);
-                    $iterToString = implode(",\n", $iter);
-                    return "{$spaces}\"{$key}\": {\n{$iterToString}\n{$spaces}}";
                 case 'unchanged':
                     return "{$spaces}\"{$key}\": [\"unchanged\", {$beforeValue}]";
                 case 'added':
@@ -51,7 +58,7 @@ function diff($ast)
         }, $ast);
         return $map;
     };
-    $diffToArray = $iter($ast, $currentDepth);
-    $diffToString = implode(",\n", $diffToArray);
+    $diff = $iter($ast, $currentDepth);
+    $diffToString = implode(",\n", $diff);
     return "{\n{$diffToString}\n}";
 }

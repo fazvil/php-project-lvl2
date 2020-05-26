@@ -1,32 +1,33 @@
 <?php
 
-namespace Differ\Formatters\Plain;
+namespace Differ\Formatters\formatterToPlain;
 
-function getValues($node)
+function formatValue($value)
 {
-    $changeValue = function ($value) {
-        if (is_object($value)) {
-            return 'complex value';
-        }
-        if (is_bool($value)) {
-            return $value ? 'true' : 'false';
-        }
-        return $value;
-    };
-    return [$changeValue($node['beforeValue']), $changeValue($node['afterValue'])];
+    if (is_object($value)) {
+        return 'complex value';
+    }
+    if (is_bool($value)) {
+        return $value ? 'true' : 'false';
+    }
+    return $value;
 }
 
-function diff($ast)
+function formatter($ast)
 {
     $iter = function ($ast, $pathToKey) use (&$iter) {
         $map = array_map(function ($node) use ($iter, $pathToKey) {
             $delimiter = $pathToKey ? '.' : '';
             $pathToKey = "{$pathToKey}{$delimiter}{$node['key']}";
-            [$beforeValue, $afterValue] = getValues($node);
+
+            if ($node['type'] === 'nested') {
+                return $iter($node['children'], $pathToKey);
+            }
+
+            $beforeValue = formatValue($node['beforeValue']);
+            $afterValue = formatValue($node['afterValue']);
 
             switch ($node['type']) {
-                case 'nested':
-                    return $iter($node['children'], $pathToKey);
                 case 'unchanged':
                     return "Property '{$pathToKey}' was unchanged";
                 case 'added':
