@@ -13,7 +13,7 @@ function formatValue($value)
     return $value;
 }
 
-function formatter($ast)
+function format($ast)
 {
     $iter = function ($ast, $pathToKey) use (&$iter) {
         $map = array_map(function ($node) use ($iter, $pathToKey) {

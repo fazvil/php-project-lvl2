@@ -76,10 +76,10 @@ function genDiff($pathToFile1, $pathToFile2, $format = 'pretty')
     $ast = $ast($parsed1, $parsed2);
 
     if ($format === 'pretty') {
-        return formatterToPretty\formatter($ast);
+        return formatterToPretty\format($ast);
     } elseif ($format === 'plain') {
-        return formatterToPlain\formatter($ast);
+        return formatterToPlain\format($ast);
     } elseif ($format === 'json') {
-        return formatterToJson\formatter($ast);
+        return formatterToJson\format($ast);
     }
 }

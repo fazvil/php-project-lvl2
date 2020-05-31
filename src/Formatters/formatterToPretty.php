@@ -21,7 +21,7 @@ function formatValue($value, $currentDepth)
     return $value;
 }
 
-function formatter($ast)
+function format($ast)
 {
     $currentDepth = 1;
     $iter = function ($ast, $currentDepth) use (&$iter) {
