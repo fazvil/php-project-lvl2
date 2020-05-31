@@ -47,13 +47,15 @@ function genDiff($pathToFile1, $pathToFile2, $format = 'pretty')
         $iter = array_map(function ($key) use ($vars1, $vars2, $ast) {
             $beforeValue = $vars1[$key] ?? null;
             $afrerValue = $vars2[$key] ?? null;
-
-            if (is_object($beforeValue) && is_object($afrerValue)) {
-                $type = 'nested';
-                $children = $ast($beforeValue, $afrerValue);
-            } elseif ($beforeValue) {
+            
+            if ($beforeValue) {
                 if ($afrerValue) {
-                    $type = ($beforeValue === $afrerValue) ? 'unchanged' : 'changed';
+                    if (is_object($beforeValue) && is_object($afrerValue)) {
+                        $type = 'nested';
+                        $children = $ast($beforeValue, $afrerValue);
+                    } else {
+                        $type = ($beforeValue === $afrerValue) ? 'unchanged' : 'changed';
+                    }
                 } else {
                     $type = 'removed';
                 }
