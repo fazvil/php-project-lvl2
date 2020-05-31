@@ -82,4 +82,4 @@ function genDiff($pathToFile1, $pathToFile2, $format = 'pretty')
     } elseif ($format === 'json') {
         return formatterToJson\format($ast);
     }
-
+}
