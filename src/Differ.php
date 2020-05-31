@@ -17,7 +17,7 @@ function readFile($file)
     return file_get_contents($file);
 }
 
-function parsers($text, $extension)
+function parseFile($text, $extension)
 {
     if ($extension === 'json') {
         $parsed = json_decode($text);
@@ -29,16 +29,12 @@ function parsers($text, $extension)
 
 function genDiff($pathToFile1, $pathToFile2, $format = 'pretty')
 {
-    try {
-        $readedFile1 = readFile($pathToFile1);
-        $readedFile2 = readFile($pathToFile2);
-    } catch (\Exception $e) {
-        return $e->getMessage();
-    }
+    $readedFile1 = readFile($pathToFile1);
+    $readedFile2 = readFile($pathToFile2);
 
     $extension = pathinfo($pathToFile1)['extension'];
-    $parsed1 = parsers($readedFile1, $extension);
-    $parsed2 = parsers($readedFile2, $extension);
+    $parsed1 = parseFile($readedFile1, $extension);
+    $parsed2 = parseFile($readedFile2, $extension);
 
     $ast = function ($object1, $object2) use (&$ast) {
         $vars1 = get_object_vars($object1);
