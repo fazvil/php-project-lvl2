@@ -9,15 +9,6 @@ use Differ\Formatters\formatterToJson;
 
 use function Funct\Collection\union;
 
-function run($args)
-{
-    if ($args['<firstFile>'] && $args['<secondFile>']) {
-        return genDiff($args['<firstFile>'], $args['<secondFile>'], $args['--format']);
-    } else {
-        return "command not found\n\n";
-    }
-}
-
 function readFile($file)
 {
     if (!is_readable($file)) {
