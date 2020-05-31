@@ -1,5 +1,6 @@
 {
     "name": "fazvil/php-project-lvl2",
+    "type": "library",
     "license": "MIT",
     "authors": [
         {
@@ -20,6 +21,8 @@
     },
     "scripts": {
         "phpcs": "phpcs",
+        "psysh": "psysh",
+        "phpcbf": "phpcbf",
         "phpunit": "phpunit",
         "test": "phpunit tests"
     },
