@@ -4,24 +4,24 @@ namespace Differ\Formatters\formatterToPlain;
 
 function formatValue($value)
 {
-    if (is_object($value)) {
-        return 'complex value';
-    }
     if (is_bool($value)) {
         return $value ? 'true' : 'false';
+    }
+    if (is_object($value)) {
+        return 'complex value';
     }
     return $value;
 }
 
 function format($ast)
 {
-    $iter = function ($ast, $pathToKey) use (&$iter) {
-        $map = array_map(function ($node) use ($iter, $pathToKey) {
+    $buildDiff = function ($ast, $pathToKey) use (&$buildDiff) {
+        $iter = array_map(function ($node) use ($buildDiff, $pathToKey) {
             $delimiter = $pathToKey ? '.' : '';
             $pathToKey = "{$pathToKey}{$delimiter}{$node['key']}";
 
             if ($node['type'] === 'nested') {
-                return $iter($node['children'], $pathToKey);
+                return $buildDiff($node['children'], $pathToKey);
             }
 
             $beforeValue = formatValue($node['beforeValue']);
@@ -38,7 +38,7 @@ function format($ast)
                     return "Property '{$pathToKey}' was changed. From '{$beforeValue}' to '{$afterValue}'";
             }
         }, $ast);
-        return implode("\n", $map);
+        return implode("\n", $iter);
     };
-    return $iter($ast, '');
+    return $buildDiff($ast, '');
 }

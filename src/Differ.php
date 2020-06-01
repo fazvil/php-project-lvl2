@@ -36,7 +36,7 @@ function genDiff($pathToFile1, $pathToFile2, $format = 'pretty')
     $parsed1 = parseFile($readedFile1, $extension);
     $parsed2 = parseFile($readedFile2, $extension);
 
-    $ast = function ($object1, $object2) use (&$ast) {
+    $buildAst = function ($object1, $object2) use (&$buildAst) {
         $vars1 = get_object_vars($object1);
         $vars2 = get_object_vars($object2);
 
@@ -44,7 +44,7 @@ function genDiff($pathToFile1, $pathToFile2, $format = 'pretty')
         $keys2 = array_keys($vars2);
         $jointKeys = array_values(union($keys1, $keys2));
 
-        $iter = array_map(function ($key) use ($vars1, $vars2, $ast) {
+        $iter = array_map(function ($key) use ($vars1, $vars2, $buildAst) {
             $beforeValue = $vars1[$key] ?? null;
             $afrerValue = $vars2[$key] ?? null;
             
@@ -52,7 +52,7 @@ function genDiff($pathToFile1, $pathToFile2, $format = 'pretty')
                 if ($afrerValue) {
                     if (is_object($beforeValue) && is_object($afrerValue)) {
                         $type = 'nested';
-                        $children = $ast($beforeValue, $afrerValue);
+                        $children = $buildAst($beforeValue, $afrerValue);
                     } else {
                         $type = ($beforeValue === $afrerValue) ? 'unchanged' : 'changed';
                     }
@@ -73,13 +73,14 @@ function genDiff($pathToFile1, $pathToFile2, $format = 'pretty')
         }, $jointKeys);
         return $iter;
     };
-    $ast = $ast($parsed1, $parsed2);
+    $ast = $buildAst($parsed1, $parsed2);
 
     if ($format === 'pretty') {
-        return formatterToPretty\format($ast);
+        $diff = formatterToPretty\format($ast);
     } elseif ($format === 'plain') {
-        return formatterToPlain\format($ast);
+        $diff = formatterToPlain\format($ast);
     } elseif ($format === 'json') {
-        return formatterToJson\format($ast);
+        $diff = formatterToJson\format($ast);
     }
+    return $diff;
 }

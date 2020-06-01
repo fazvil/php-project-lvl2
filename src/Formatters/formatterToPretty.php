@@ -5,18 +5,18 @@ namespace Differ\Formatters\formatterToPretty;
 function formatValue($value, $currentDepth)
 {
     $spaces = str_repeat(' ', $currentDepth * 4);
+    if (is_bool($value)) {
+        return $value ? 'true' : 'false';
+    }
     if (is_object($value)) {
         $vars = get_object_vars($value);
         $keys = array_keys($vars);
         $values = array_values($vars);
-        $format = array_map(function ($key, $value) use ($spaces) {
+        $diff = array_map(function ($key, $value) use ($spaces) {
             return "{$spaces}    {$key}: {$value}";
         }, $keys, $values);
-        $toString = implode("\n", $format);
-        return "{\n{$toString}\n{$spaces}}";
-    }
-    if (is_bool($value)) {
-        return $value ? 'true' : 'false';
+        $dittToString = implode("\n", $diff);
+        return "{\n{$dittToString}\n{$spaces}}";
     }
     return $value;
 }
@@ -24,15 +24,15 @@ function formatValue($value, $currentDepth)
 function format($ast)
 {
     $currentDepth = 1;
-    $iter = function ($ast, $currentDepth) use (&$iter) {
-        $map = array_map(function ($node) use ($iter, $currentDepth) {
+    $buildDiff = function ($ast, $currentDepth) use (&$buildDiff) {
+        $iter = array_map(function ($node) use ($buildDiff, $currentDepth) {
             $key = $node['key'];
             $spaces = str_repeat(' ', $currentDepth * 4 - 4);
 
             if ($node['type'] === 'nested') {
-                $iter = $iter($node['children'], $currentDepth + 1);
-                $iterToString = implode("\n", $iter);
-                return "    {$key}: {\n{$iterToString}\n    }";
+                $interDiff = $buildDiff($node['children'], $currentDepth + 1);
+                $interDiffToString = implode("\n", $interDiff);
+                return "    {$key}: {\n{$interDiffToString}\n    }";
             }
 
             $beforeValue = formatValue($node['beforeValue'], $currentDepth);
@@ -49,9 +49,9 @@ function format($ast)
                     return "{$spaces}  - {$key}: {$beforeValue}\n{$spaces}  + {$key}: {$afterValue}";
             }
         }, $ast);
-        return $map;
+        return $iter;
     };
-    $diff = $iter($ast, $currentDepth);
-    $diffToString = implode("\n", $diff);
+    $arrayDiff = $buildDiff($ast, $currentDepth);
+    $diffToString = implode("\n", $arrayDiff);
     return "{\n{$diffToString}\n}";
 }
