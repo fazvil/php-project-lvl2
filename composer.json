@@ -17,7 +17,10 @@
             "src/Formatters/formatterToPretty.php",
             "src/Formatters/formatterToPlain.php",
             "src/Formatters/formatterToJson.php"
-        ]
+        ],
+        "psr-4": {
+            "Differ\\tests\\": "tests"
+        }
     },
     "scripts": {
         "phpcs": "phpcs",
