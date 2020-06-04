@@ -33,12 +33,12 @@ function genDiff($pathToFile1, $pathToFile2, $format = 'pretty')
     $readedFile2 = readFile($pathToFile2);
 
     $extension = pathinfo($pathToFile1)['extension'];
-    $parsed1 = parseFile($readedFile1, $extension);
-    $parsed2 = parseFile($readedFile2, $extension);
+    $data1 = parseFile($readedFile1, $extension);
+    $data2 = parseFile($readedFile2, $extension);
 
-    $buildAst = function ($object1, $object2) use (&$buildAst) {
-        $vars1 = get_object_vars($object1);
-        $vars2 = get_object_vars($object2);
+    $buildAst = function (object $data1, object $data2) use (&$buildAst) {
+        $vars1 = get_object_vars($data1);
+        $vars2 = get_object_vars($data2);
 
         $keys1 = array_keys($vars1);
         $keys2 = array_keys($vars2);
@@ -47,40 +47,39 @@ function genDiff($pathToFile1, $pathToFile2, $format = 'pretty')
         $iter = array_map(function ($key) use ($vars1, $vars2, $buildAst) {
             $beforeValue = $vars1[$key] ?? null;
             $afrerValue = $vars2[$key] ?? null;
-            
-            if ($beforeValue) {
-                if ($afrerValue) {
-                    if (is_object($beforeValue) && is_object($afrerValue)) {
-                        $type = 'nested';
-                        $children = $buildAst($beforeValue, $afrerValue);
-                    } else {
-                        $type = ($beforeValue === $afrerValue) ? 'unchanged' : 'changed';
-                    }
-                } else {
-                    $type = 'removed';
-                }
-            } else {
-                $type = 'added';
-            }
 
-            return [
-                'type' => $type,
+            $node = [
+                'type' => null,
                 'key' => $key,
                 'beforeValue' => $beforeValue,
                 'afterValue' => $afrerValue,
-                'children' => ($type === 'nested') ? $children : []
+                'children' => []
             ];
+
+            if (!$beforeValue) {
+                $node['type'] = 'added';
+            } elseif (!$afrerValue) {
+                $node['type'] = 'removed';
+            } elseif (is_object($beforeValue) && is_object($afrerValue)) {
+                $node['type'] = 'nested';
+                $node['children'] = $buildAst($beforeValue, $afrerValue);
+            } elseif ($beforeValue === $afrerValue) {
+                $node['type'] = 'unchanged';
+            } else {
+                $node['type'] = 'changed';
+            }    
+            return $node;
         }, $jointKeys);
         return $iter;
     };
-    $ast = $buildAst($parsed1, $parsed2);
+    $ast = $buildAst($data1, $data2);
 
-    if ($format === 'pretty') {
-        $diff = formatterToPretty\format($ast);
-    } elseif ($format === 'plain') {
-        $diff = formatterToPlain\format($ast);
-    } elseif ($format === 'json') {
-        $diff = formatterToJson\format($ast);
+    switch ($format) {
+        case ('pretty'):
+            return formatterToPretty\format($ast);
+        case ('plain'):
+            return formatterToPlain\format($ast);
+        case ('json'):
+            return formatterToJson\format($ast);
     }
-    return $diff;
 }
