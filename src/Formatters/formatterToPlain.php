@@ -20,22 +20,20 @@ function format($ast)
             $delimiter = $pathToKey ? '.' : '';
             $pathToKey = "{$pathToKey}{$delimiter}{$node['key']}";
 
-            if ($node['type'] === 'nested') {
-                return $buildDiff($node['children'], $pathToKey);
-            }
-
             $beforeValue = formatValue($node['beforeValue']);
             $afterValue = formatValue($node['afterValue']);
 
             switch ($node['type']) {
-                case 'unchanged':
+                case ('unchanged'):
                     return "Property '{$pathToKey}' was unchanged";
-                case 'added':
+                case ('added'):
                     return "Property '{$pathToKey}' was added with value: '{$afterValue}'";
-                case 'removed':
+                case ('removed'):
                     return "Property '{$pathToKey}' was removed";
-                case 'changed':
+                case ('changed'):
                     return "Property '{$pathToKey}' was changed. From '{$beforeValue}' to '{$afterValue}'";
+                case ('nested'):
+                    return $buildDiff($node['children'], $pathToKey);
             }
         }, $ast);
         return implode("\n", $iter);
