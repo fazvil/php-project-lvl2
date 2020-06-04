@@ -19,12 +19,12 @@ function readFile($file)
 
 function parseFile($text, $extension)
 {
-    if ($extension === 'json') {
-        $parsed = json_decode($text);
-    } elseif ($extension === 'yaml') {
-        $parsed = Yaml::parse($text, Yaml::PARSE_OBJECT_FOR_MAP);
+    switch ($extension) {
+        case 'json':
+            return json_decode($text);
+        case 'yaml':
+            return Yaml::parse($text, Yaml::PARSE_OBJECT_FOR_MAP);
     }
-    return $parsed;
 }
 
 function genDiff($pathToFile1, $pathToFile2, $format = 'pretty')

@@ -45,9 +45,9 @@ function format($ast)
                 case 'changed':
                     return "{$spaces}  - {$key}: {$beforeValue}\n{$spaces}  + {$key}: {$afterValue}";
                 case 'nested':
-                    $interDiff = $buildDiff($node['children'], $currentDepth + 1);
-                    $interDiffToString = implode("\n", $interDiff);
-                    return "    {$key}: {\n{$interDiffToString}\n    }";
+                    $subDiff = $buildDiff($node['children'], $currentDepth + 1);
+                    $subDiffToString = implode("\n", $subDiff);
+                    return "    {$key}: {\n{$subDiffToString}\n    }";
             }
         }, $ast);
         return $iter;
