@@ -24,15 +24,15 @@ function format($ast)
             $afterValue = formatValue($node['afterValue']);
 
             switch ($node['type']) {
-                case ('unchanged'):
+                case 'unchanged':
                     return "Property '{$pathToKey}' was unchanged";
-                case ('added'):
+                case 'added':
                     return "Property '{$pathToKey}' was added with value: '{$afterValue}'";
-                case ('removed'):
+                case 'removed':
                     return "Property '{$pathToKey}' was removed";
-                case ('changed'):
+                case 'changed':
                     return "Property '{$pathToKey}' was changed. From '{$beforeValue}' to '{$afterValue}'";
-                case ('nested'):
+                case 'nested':
                     return $buildDiff($node['children'], $pathToKey);
             }
         }, $ast);

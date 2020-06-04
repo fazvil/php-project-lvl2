@@ -67,7 +67,7 @@ function genDiff($pathToFile1, $pathToFile2, $format = 'pretty')
                 $node['type'] = 'unchanged';
             } else {
                 $node['type'] = 'changed';
-            }    
+            }
             return $node;
         }, $jointKeys);
         return $iter;
@@ -75,11 +75,11 @@ function genDiff($pathToFile1, $pathToFile2, $format = 'pretty')
     $ast = $buildAst($data1, $data2);
 
     switch ($format) {
-        case ('pretty'):
+        case 'pretty':
             return formatterToPretty\format($ast);
-        case ('plain'):
+        case 'plain':
             return formatterToPlain\format($ast);
-        case ('json'):
+        case 'json':
             return formatterToJson\format($ast);
     }
 }

@@ -4,21 +4,24 @@ namespace Differ\Formatters\formatterToPretty;
 
 function formatValue($value, $currentDepth)
 {
-    $spaces = str_repeat(' ', $currentDepth * 4);
     if (is_bool($value)) {
         return $value ? 'true' : 'false';
     }
-    if (is_object($value)) {
-        $vars = get_object_vars($value);
-        $keys = array_keys($vars);
-        $values = array_values($vars);
-        $diff = array_map(function ($key, $value) use ($spaces) {
-            return "{$spaces}    {$key}: {$value}";
-        }, $keys, $values);
-        $dittToString = implode("\n", $diff);
-        return "{\n{$dittToString}\n{$spaces}}";
+    if (!is_object($value)) {
+        return $value;
     }
-    return $value;
+
+    $spaces = str_repeat(' ', $currentDepth * 4);
+    $vars = get_object_vars($value);
+    $keys = array_keys($vars);
+    $values = array_values($vars);
+
+    $iter = array_map(function ($key, $value) use ($spaces, $currentDepth) {
+        $formattedValue = formatValue($value, $currentDepth);
+        return "{$spaces}    {$key}: {$formattedValue}";
+    }, $keys, $values);
+    $toString = implode("\n", $iter);
+    return "{\n{$toString}\n{$spaces}}";
 }
 
 function format($ast)
@@ -28,12 +31,6 @@ function format($ast)
         $iter = array_map(function ($node) use ($buildDiff, $currentDepth) {
             $key = $node['key'];
             $spaces = str_repeat(' ', $currentDepth * 4 - 4);
-
-            if ($node['type'] === 'nested') {
-                $interDiff = $buildDiff($node['children'], $currentDepth + 1);
-                $interDiffToString = implode("\n", $interDiff);
-                return "    {$key}: {\n{$interDiffToString}\n    }";
-            }
 
             $beforeValue = formatValue($node['beforeValue'], $currentDepth);
             $afterValue = formatValue($node['afterValue'], $currentDepth);
@@ -47,6 +44,10 @@ function format($ast)
                     return "{$spaces}  - {$key}: {$beforeValue}";
                 case 'changed':
                     return "{$spaces}  - {$key}: {$beforeValue}\n{$spaces}  + {$key}: {$afterValue}";
+                case 'nested':
+                    $interDiff = $buildDiff($node['children'], $currentDepth + 1);
+                    $interDiffToString = implode("\n", $interDiff);
+                    return "    {$key}: {\n{$interDiffToString}\n    }";
             }
         }, $ast);
         return $iter;
