@@ -4,24 +4,24 @@ namespace Differ\Formatters\formatterToPretty;
 
 function formatValue($value, $currentDepth)
 {
-    if (is_bool($value)) {
-        return $value ? 'true' : 'false';
+    switch (gettype($value)) {
+        case 'boolean':
+            return $value ? 'true' : 'false';
+        case 'object':
+            $spaces = str_repeat(' ', $currentDepth * 4);
+            $vars = get_object_vars($value);
+            $keys = array_keys($vars);
+            $values = array_values($vars);
+        
+            $iterToArray = array_map(function ($key, $value) use ($spaces, $currentDepth) {
+                $formattedValue = formatValue($value, $currentDepth);
+                return "{$spaces}    {$key}: {$formattedValue}";
+            }, $keys, $values);
+            $iterToString = implode("\n", $iterToArray);
+            return "{\n{$iterToString}\n{$spaces}}";
+        default:
+            return $value;
     }
-    if (!is_object($value)) {
-        return $value;
-    }
-
-    $spaces = str_repeat(' ', $currentDepth * 4);
-    $vars = get_object_vars($value);
-    $keys = array_keys($vars);
-    $values = array_values($vars);
-
-    $iter = array_map(function ($key, $value) use ($spaces, $currentDepth) {
-        $formattedValue = formatValue($value, $currentDepth);
-        return "{$spaces}    {$key}: {$formattedValue}";
-    }, $keys, $values);
-    $toString = implode("\n", $iter);
-    return "{\n{$toString}\n{$spaces}}";
 }
 
 function format($ast)

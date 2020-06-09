@@ -4,13 +4,14 @@ namespace Differ\Formatters\formatterToPlain;
 
 function formatValue($value)
 {
-    if (is_bool($value)) {
-        return $value ? 'true' : 'false';
+    switch (gettype($value)) {
+        case 'boolean':
+            return $value ? 'true' : 'false';
+        case 'object':
+            return 'complex value';
+        default:
+            return $value;
     }
-    if (is_object($value)) {
-        return 'complex value';
-    }
-    return $value;
 }
 
 function format($ast)

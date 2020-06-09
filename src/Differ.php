@@ -17,24 +17,26 @@ function readFile($file)
     return file_get_contents($file);
 }
 
-function parseFile($text, $extension)
+function decodeDataToObject($data, $extension)
 {
     switch ($extension) {
         case 'json':
-            return json_decode($text);
+            return json_decode($data);
         case 'yaml':
-            return Yaml::parse($text, Yaml::PARSE_OBJECT_FOR_MAP);
+            return Yaml::parse($data, Yaml::PARSE_OBJECT_FOR_MAP);
+        default:
+            throw new \Exception("Unable to read decode extension '{$extension}'");
     }
 }
 
 function genDiff($pathToFile1, $pathToFile2, $format = 'pretty')
 {
-    $readedFile1 = readFile($pathToFile1);
-    $readedFile2 = readFile($pathToFile2);
+    $readData1 = readFile($pathToFile1);
+    $readData2 = readFile($pathToFile2);
 
     $extension = pathinfo($pathToFile1)['extension'];
-    $data1 = parseFile($readedFile1, $extension);
-    $data2 = parseFile($readedFile2, $extension);
+    $data1 = decodeDataToObject($readData1, $extension);
+    $data2 = decodeDataToObject($readData2, $extension);
 
     $buildAst = function (object $data1, object $data2) use (&$buildAst) {
         $vars1 = get_object_vars($data1);
@@ -48,7 +50,7 @@ function genDiff($pathToFile1, $pathToFile2, $format = 'pretty')
             $beforeValue = $vars1[$key] ?? null;
             $afrerValue = $vars2[$key] ?? null;
 
-            $node = [
+            $baseNode = [
                 'type' => null,
                 'key' => $key,
                 'beforeValue' => $beforeValue,
@@ -57,16 +59,16 @@ function genDiff($pathToFile1, $pathToFile2, $format = 'pretty')
             ];
 
             if (!$beforeValue) {
-                $node['type'] = 'added';
+                $node = array_merge($baseNode, ['type' => 'added']);
             } elseif (!$afrerValue) {
-                $node['type'] = 'removed';
+                $node = array_merge($baseNode, ['type' => 'removed']);
             } elseif (is_object($beforeValue) && is_object($afrerValue)) {
-                $node['type'] = 'nested';
-                $node['children'] = $buildAst($beforeValue, $afrerValue);
+                $childNode = $buildAst($beforeValue, $afrerValue);
+                $node = array_merge($baseNode, ['type' => 'nested', 'children' => $childNode]);
             } elseif ($beforeValue === $afrerValue) {
-                $node['type'] = 'unchanged';
+                $node = array_merge($baseNode, ['type' => 'unchanged']);
             } else {
-                $node['type'] = 'changed';
+                $node = array_merge($baseNode, ['type' => 'changed']);
             }
             return $node;
         }, $jointKeys);
@@ -75,11 +77,11 @@ function genDiff($pathToFile1, $pathToFile2, $format = 'pretty')
     $ast = $buildAst($data1, $data2);
 
     switch ($format) {
-        case 'pretty':
-            return formatterToPretty\format($ast);
         case 'plain':
             return formatterToPlain\format($ast);
         case 'json':
             return formatterToJson\format($ast);
+        default:
+            return formatterToPretty\format($ast);
     }
 }
