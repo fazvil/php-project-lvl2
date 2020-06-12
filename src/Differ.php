@@ -17,7 +17,7 @@ function readFile($file)
     return file_get_contents($file);
 }
 
-function decodeDataToObject($data, $extension)
+function parse($data, $extension)
 {
     switch ($extension) {
         case 'json':
@@ -35,8 +35,8 @@ function genDiff($pathToFile1, $pathToFile2, $format = 'pretty')
     $readData2 = readFile($pathToFile2);
 
     $extension = pathinfo($pathToFile1)['extension'];
-    $data1 = decodeDataToObject($readData1, $extension);
-    $data2 = decodeDataToObject($readData2, $extension);
+    $data1 = parse($readData1, $extension);
+    $data2 = parse($readData2, $extension);
 
     $buildAst = function (object $data1, object $data2) use (&$buildAst) {
         $vars1 = get_object_vars($data1);
@@ -58,9 +58,9 @@ function genDiff($pathToFile1, $pathToFile2, $format = 'pretty')
                 'children' => []
             ];
 
-            if (!$beforeValue) {
+            if ($beforeValue === null) {
                 $node = array_merge($baseNode, ['type' => 'added']);
-            } elseif (!$afrerValue) {
+            } elseif ($afrerValue === null) {
                 $node = array_merge($baseNode, ['type' => 'removed']);
             } elseif (is_object($beforeValue) && is_object($afrerValue)) {
                 $childNode = $buildAst($beforeValue, $afrerValue);
