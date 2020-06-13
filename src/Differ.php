@@ -58,9 +58,9 @@ function genDiff($pathToFile1, $pathToFile2, $format = 'pretty')
                 'children' => []
             ];
 
-            if ($beforeValue === null) {
+            if (!array_key_exists($key, $vars1)) {
                 $node = array_merge($baseNode, ['type' => 'added']);
-            } elseif ($afrerValue === null) {
+            } elseif (!array_key_exists($key, $vars2)) {
                 $node = array_merge($baseNode, ['type' => 'removed']);
             } elseif (is_object($beforeValue) && is_object($afrerValue)) {
                 $childNode = $buildAst($beforeValue, $afrerValue);
